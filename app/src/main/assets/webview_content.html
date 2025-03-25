@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>TTS Sample</title>
+    <style>
+        body.screenshot-blur {
+            filter: blur(10px);
+        }
+    </style>
+    <script type="text/javascript">
+        // Text-To-Speech
+        function postSpeakStart() {
+            alert(document.getElementById("content").value);
+            const rand_0_100 = Math.floor(Math.random() * 101);
+            let request = {
+                request: "postSpeak",
+                action: "start",
+                parameter: {
+                    speakId: "" + rand_0_100 + "",
+                    speakText: document.getElementById("content").value,
+                    speechRate: 1, //0.1 ~ 1.0
+                    pitch: 1.0
+                },
+                callback: "postSpeakCallback"
+            }
+            let message = JSON.stringify(request);
+            treasureComics.postMessage(message.toString());
+        }
+
+        function postSpeakPause() {
+            let request = {
+                request: "postSpeak",
+                action: "pause",
+                callback: "postSpeakCallback"
+            }
+            let message = JSON.stringify(request);
+            treasureComics.postMessage(message.toString());
+        }
+
+        function postSpeakResume() {
+            let request = {
+                request: "postSpeak",
+                action: "resume",
+                callback: "postSpeakCallback"
+            }
+            let message = JSON.stringify(request);
+            treasureComics.postMessage(message.toString());
+        }
+
+        function postSpeakStop() {
+            let request = {
+                request: "postSpeak",
+                action: "stop",
+                callback: "postSpeakCallback"
+            }
+            let message = JSON.stringify(request);
+            treasureComics.postMessage(message.toString());
+        }
+
+        function postSpeakCallback(response) {
+            var obj = JSON.parse(response);
+            let speakId = obj.speakId
+            let speakStatus = obj.speakStatus
+            console.log(response);
+        }
+    </script>
+</head>
+<body>
+<div>
+        <textarea id="content" style="width: 90%; height: 400px; padding: 10px;">
+우리는 어둠속에서 다양한 역사를 가진 삶의 빛깔들을 바라보며
+그것처럼 빛나길 꿈꾸기도 때로는 그 빛으로 위로받기도 한다.
+이 모든 빛들은 함께 어우러져 어둠을 더 밝게 밝힌다.
+        </textarea>
+</div>
+<div>
+    <input type="button" value="PLAY" onclick="postSpeakStart();">
+    <input type="button" value="STOP" onclick="postSpeakStop();">
+    <input type="button" value="RESUME" onclick="postSpeakResume();">
+    <input type="button" value="PAUSE" onclick="postSpeakPause();">
+</div>
+</body>
+</html>
