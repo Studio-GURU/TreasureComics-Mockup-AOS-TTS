@@ -60,13 +60,13 @@ public class TextToSpeechJavaActivity extends AppCompatActivity implements TextT
     }
 
     @Override
-    public void onCallback(String utteranceId, TextToSpeechJava.SpeakStatus speakStatus) {
+    public void onCallback(String utteranceId, String callbackName, TextToSpeechJava.SpeakStatus speakStatus) {
         Log.e("TextToSpeechHelperTest", "{utteranceId : " + utteranceId + ", speakStatus : " + speakStatus.getValue() + " }");
         try {
             JSONObject param = new JSONObject();
             param.put("speakId", utteranceId);
             param.put("speakStatus", speakStatus.getValue());
-            postResponse("postSpeakCallback", param);
+            postResponse(callbackName, param);
         } catch (Exception e) {
             Log.e("TextToSpeechHelperTest", Objects.requireNonNull(e.getMessage()));
         }
@@ -99,10 +99,11 @@ public class TextToSpeechJavaActivity extends AppCompatActivity implements TextT
                             JSONObject innerParameter = param.getJSONObject("parameter");
                             String speakId = innerParameter.getString("speakId");
                             String speakText = innerParameter.getString("speakText");
+                            String callbackName = innerParameter.getString("callback");
                             float speechRate = (float) innerParameter.getDouble("speechRate");
                             float pitch = (float) innerParameter.getDouble("pitch");
                             // speak
-                            TextToSpeechJava.SpeakEntity entity = new TextToSpeechJava.SpeakEntity(speakId, speakText, speechRate, pitch);
+                            TextToSpeechJava.SpeakEntity entity = new TextToSpeechJava.SpeakEntity(speakId, speakText, speechRate, pitch, callbackName);
                             tts.speak(entity);
                             return;
                         case "pause":

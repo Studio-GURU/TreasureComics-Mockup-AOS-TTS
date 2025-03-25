@@ -60,8 +60,28 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
         }
     }
 
-    val callback: (String, TextToSpeechKotlin.SpeakStatus) -> Unit = { utteranceId, status ->
+    val callback: (String, String, TextToSpeechKotlin.SpeakStatus) -> Unit = { utteranceId, callbackName, status ->
+        Log.e(
+            "TextToSpeechHelperTest",
+            "{utteranceId : " + utteranceId + ", speakStatus : " + status.value + " }"
+        )
+        try {
+            val param = JSONObject()
+            param.put("speakId", utteranceId)
+            param.put("speakStatus", status.value)
+            postResponse(callbackName, param)
+        } catch (e: Exception) {
+            Log.e("TextToSpeechHelperTest", e.message ?: "")
+        }
+    }
 
+    fun postResponse(callbackName: String, params: JSONObject?) {
+        runOnUiThread {
+            val paramString =
+                if (params != null) "'" + params.toString().replace("\"", "\\\"") + "'" else ""
+            val script = "(function(){$callbackName($paramString);})();"
+            vb!!.webview.evaluateJavascript(script, null)
+        }
     }
 
     class TreasureComicsJavascript internal constructor(private val tts: TextToSpeechKotlin?) {
@@ -79,12 +99,14 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
                             val speakText = innerParameter.getString("speakText")
                             val speechRate = innerParameter.getDouble("speechRate").toFloat()
                             val pitch = innerParameter.getDouble("pitch").toFloat()
+                            val callbackName = innerParameter.getString("callback")
                             // speak
                             val entity = TextToSpeechKotlin.SpeakEntity(
                                 speakId,
                                 speakText,
                                 speechRate,
-                                pitch
+                                pitch,
+                                callbackName
                             )
                             tts?.speak(entity)
                             return

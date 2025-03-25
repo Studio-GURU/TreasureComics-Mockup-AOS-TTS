@@ -14,6 +14,7 @@ class TextToSpeechKotlin(private val context: Context) {
         val speakText: String,
         val speechRate: Float = 1.0f,
         val pitch: Float = 1.0f,
+        val callbackName: String
     )
 
     enum class SpeakStatus(val value: Int) {
@@ -47,7 +48,7 @@ class TextToSpeechKotlin(private val context: Context) {
     private var isResumed = false
     private var currentSpeak: SpeakEntity? = null
     private var behavior: TextToSpeech? = null
-    private var callback: ((String, SpeakStatus) -> Unit)? = null
+    private var callback: ((String, String, SpeakStatus) -> Unit)? = null
 
     private fun initialize(callback: () -> Unit) {
         if (isReady && behavior != null) {
@@ -63,12 +64,12 @@ class TextToSpeechKotlin(private val context: Context) {
     fun speak(speakEntity: SpeakEntity) {
         initialize {
             if (behavior?.isSpeaking == true || isPaused) {
-                callback?.invoke(speakEntity.speakId, SpeakStatus.PLAYING)
+                callback?.invoke(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.PLAYING)
             } else if (getCurrentVolume(context = context) == 0) {
-                callback?.invoke(speakEntity.speakId, SpeakStatus.MUTED)
+                callback?.invoke(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.MUTED)
             } else {
                 if (!isReady) {
-                    callback?.invoke(speakEntity.speakId, SpeakStatus.ERROR)
+                    callback?.invoke(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.ERROR)
                 } else {
                     behavior?.setPitch(speakEntity.pitch)
                     behavior?.setSpeechRate(speakEntity.speechRate)
@@ -77,16 +78,16 @@ class TextToSpeechKotlin(private val context: Context) {
                         override fun onStart(utteranceId: String?) {
                             if (isResumed) {
                                 isResumed = false
-                                callback?.invoke(utteranceId!!, SpeakStatus.RESUME)
+                                callback?.invoke(utteranceId!!, speakEntity.callbackName, SpeakStatus.RESUME)
                             } else {
-                                callback?.invoke(utteranceId!!, SpeakStatus.START)
+                                callback?.invoke(utteranceId!!, speakEntity.callbackName, SpeakStatus.START)
                             }
                         }
 
                         override fun onDone(utteranceId: String?) {
                             isPaused = false
                             isResumed = false
-                            callback?.invoke(utteranceId!!, SpeakStatus.DONE)
+                            callback?.invoke(utteranceId!!, speakEntity.callbackName, SpeakStatus.DONE)
                             speakDestroy()
                         }
 
@@ -94,7 +95,7 @@ class TextToSpeechKotlin(private val context: Context) {
                         override fun onError(utteranceId: String?) {
                             isPaused = false
                             isResumed = false
-                            callback?.invoke(utteranceId!!, SpeakStatus.ERROR)
+                            callback?.invoke(utteranceId!!, speakEntity.callbackName, SpeakStatus.ERROR)
                             speakDestroy()
                         }
                     })
@@ -111,7 +112,7 @@ class TextToSpeechKotlin(private val context: Context) {
                 isPaused = true
                 behavior?.stop()
                 currentSpeak?.run {
-                    callback?.invoke(this.speakId, SpeakStatus.PAUSE)
+                    callback?.invoke(this.speakId, this.callbackName, SpeakStatus.PAUSE)
                 }
             }
         }
@@ -131,14 +132,14 @@ class TextToSpeechKotlin(private val context: Context) {
 
     fun speakStop() {
         currentSpeak?.run {
-            callback?.invoke(this.speakId, SpeakStatus.STOP)
+            callback?.invoke(this.speakId, this.callbackName, SpeakStatus.STOP)
             isPaused = false
             currentSpeak = null
             behavior?.stop()
         }
     }
 
-    fun speakStatusListener(callback: (utteranceId: String, status: SpeakStatus) -> Unit) {
+    fun speakStatusListener(callback: (utteranceId: String, callbackName: String, status: SpeakStatus) -> Unit) {
         this.callback = callback
     }
 
