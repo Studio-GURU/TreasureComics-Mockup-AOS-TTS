@@ -1,5 +1,6 @@
 package kr.co.studioguru.tts
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,7 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
         TextToSpeechKotlin(this)
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         vb = ActivityTextToSpeechTestBinding.inflate(layoutInflater)
@@ -63,7 +65,7 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
     val callback: (String, String, TextToSpeechKotlin.SpeakStatus) -> Unit = { utteranceId, callbackName, status ->
         Log.e(
             "TextToSpeechHelperTest",
-            "{utteranceId : " + utteranceId + ", speakStatus : " + status.value + " }"
+            "{utteranceId: $utteranceId, callbackName: $callbackName, speakStatus: ${status.value} }"
         )
         try {
             val param = JSONObject()
@@ -90,6 +92,7 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
             try {
                 val param = message?.let { JSONObject(it) }
                 val request = param?.getString("request")
+                val callbackName = param?.getString("callback") ?: ""
                 if (request == "postSpeak") {
                     val action = param.getString("action")
                     when (action) {
@@ -99,31 +102,29 @@ class TextToSpeechKotlinActivity: AppCompatActivity() {
                             val speakText = innerParameter.getString("speakText")
                             val speechRate = innerParameter.getDouble("speechRate").toFloat()
                             val pitch = innerParameter.getDouble("pitch").toFloat()
-                            val callbackName = innerParameter.getString("callback")
                             // speak
                             val entity = TextToSpeechKotlin.SpeakEntity(
                                 speakId,
                                 speakText,
                                 speechRate,
-                                pitch,
-                                callbackName
+                                pitch
                             )
-                            tts?.speak(entity)
+                            tts?.speak(speakEntity = entity, callbackName = callbackName)
                             return
                         }
 
                         "pause" -> {
-                            tts?.speakPause()
+                            tts?.speakPause(callbackName = callbackName)
                             return
                         }
 
                         "stop" -> {
-                            tts?.speakStop()
+                            tts?.speakStop(callbackName = callbackName)
                             return
                         }
 
                         "resume" -> {
-                            tts?.speakResume()
+                            tts?.speakResume(callbackName = callbackName)
                             return
                         }
                     }

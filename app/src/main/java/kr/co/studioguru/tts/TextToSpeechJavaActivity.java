@@ -20,14 +20,11 @@ public class TextToSpeechJavaActivity extends AppCompatActivity implements TextT
 
     private ActivityTextToSpeechTestBinding vb;
 
-
-    private static TextToSpeechJava textToSpeechJava;
-
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        textToSpeechJava = new TextToSpeechJava(this);
+        TextToSpeechJava textToSpeechJava = new TextToSpeechJava(this);
         textToSpeechJava.setTextToSpeechListener(this);
         vb = ActivityTextToSpeechTestBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());
@@ -92,6 +89,7 @@ public class TextToSpeechJavaActivity extends AppCompatActivity implements TextT
             try {
                 JSONObject param = new JSONObject(message);
                 String request = param.getString("request");
+                String callbackName = param.getString("callback");
                 if (request.equals("postSpeak")) {
                     String action = param.getString("action");
                     switch (action) {
@@ -99,21 +97,20 @@ public class TextToSpeechJavaActivity extends AppCompatActivity implements TextT
                             JSONObject innerParameter = param.getJSONObject("parameter");
                             String speakId = innerParameter.getString("speakId");
                             String speakText = innerParameter.getString("speakText");
-                            String callbackName = innerParameter.getString("callback");
                             float speechRate = (float) innerParameter.getDouble("speechRate");
                             float pitch = (float) innerParameter.getDouble("pitch");
                             // speak
-                            TextToSpeechJava.SpeakEntity entity = new TextToSpeechJava.SpeakEntity(speakId, speakText, speechRate, pitch, callbackName);
-                            tts.speak(entity);
+                            TextToSpeechJava.SpeakEntity entity = new TextToSpeechJava.SpeakEntity(speakId, speakText, speechRate, pitch);
+                            tts.speak(entity, callbackName);
                             return;
                         case "pause":
-                            tts.speakPause();
+                            tts.speakPause(callbackName);
                             return;
                         case "stop":
-                            tts.speakStop();
+                            tts.speakStop(callbackName);
                             return;
                         case "resume":
-                            tts.speakResume();
+                            tts.speakResume(callbackName);
                             return;
                     }
                 }

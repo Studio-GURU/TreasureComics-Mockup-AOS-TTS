@@ -24,27 +24,23 @@ public class TextToSpeechJava {
         public String speakText;
         public float speechRate = 1.0f;
         public float pitch = 1.0f;
-        public String callbackName;
 
-        public SpeakEntity(String speakId, String speakText, float speechRate, float pitch, String callbackName) {
+        public SpeakEntity(String speakId, String speakText, float speechRate, float pitch) {
             this.speakId = speakId;
             this.speakText = speakText;
             this.speechRate = speechRate;
             this.pitch = pitch;
-            this.callbackName = callbackName;
         }
 
-        public SpeakEntity(String speakId, String speakText, float speechRate, String callbackName) {
+        public SpeakEntity(String speakId, String speakText, float speechRate) {
             this.speakId = speakId;
             this.speakText = speakText;
             this.speechRate = speechRate;
-            this.callbackName = callbackName;
         }
 
-        public SpeakEntity(String speakId, String speakText, String callbackName) {
+        public SpeakEntity(String speakId, String speakText) {
             this.speakId = speakId;
             this.speakText = speakText;
-            this.callbackName = callbackName;
         }
     }
 
@@ -100,17 +96,17 @@ public class TextToSpeechJava {
         }
     }
 
-    public void speak(SpeakEntity speakEntity) {
+    public void speak(SpeakEntity speakEntity, String callbackName) {
         initialize(() -> {
             if (behavior != null && behavior.isSpeaking() || isPaused) {
                 if (listener != null) {
-                    listener.onCallback(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.PLAYING);
+                    listener.onCallback(speakEntity.speakId, callbackName, SpeakStatus.PLAYING);
                 }
             } else if (getCurrentVolume(context) == 0) {
-                listener.onCallback(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.MUTED);
+                listener.onCallback(speakEntity.speakId, callbackName, SpeakStatus.MUTED);
             } else {
                 if (!isReady) {
-                    listener.onCallback(speakEntity.speakId, speakEntity.callbackName, SpeakStatus.ERROR);
+                    listener.onCallback(speakEntity.speakId, callbackName, SpeakStatus.ERROR);
                 } else {
                     if (behavior != null) {
                         behavior.setPitch(speakEntity.pitch);
@@ -122,11 +118,11 @@ public class TextToSpeechJava {
                                 if (isResumed) {
                                     isResumed = false;
                                     if (listener != null) {
-                                        listener.onCallback(utteranceId, speakEntity.callbackName, SpeakStatus.RESUME);
+                                        listener.onCallback(utteranceId, callbackName, SpeakStatus.RESUME);
                                     }
                                 } else {
                                     if (listener != null) {
-                                        listener.onCallback(utteranceId, speakEntity.callbackName, SpeakStatus.START);
+                                        listener.onCallback(utteranceId, callbackName, SpeakStatus.START);
                                     }
                                 }
                             }
@@ -136,7 +132,7 @@ public class TextToSpeechJava {
                                 isPaused = false;
                                 isResumed = false;
                                 if (listener != null) {
-                                    listener.onCallback(utteranceId, speakEntity.callbackName, SpeakStatus.DONE);
+                                    listener.onCallback(utteranceId, callbackName, SpeakStatus.DONE);
                                 }
                                 speakDestroy();
                             }
@@ -146,7 +142,7 @@ public class TextToSpeechJava {
                                 isPaused = false;
                                 isResumed = false;
                                 if (listener != null) {
-                                    listener.onCallback(utteranceId, speakEntity.callbackName, SpeakStatus.ERROR);
+                                    listener.onCallback(utteranceId, callbackName, SpeakStatus.ERROR);
                                 }
                                 speakDestroy();
                             }
@@ -159,34 +155,34 @@ public class TextToSpeechJava {
         });
     }
 
-    public void speakPause() {
+    public void speakPause(String callbackName) {
         initialize(() -> {
             if (behavior != null && behavior.isSpeaking() && !isPaused) {
                 isPaused = true;
                 behavior.stop();
                 if (currentSpeak != null && listener != null) {
-                    listener.onCallback(currentSpeak.speakId, currentSpeak.callbackName, SpeakStatus.PAUSE);
+                    listener.onCallback(currentSpeak.speakId, callbackName, SpeakStatus.PAUSE);
                 }
             }
         });
     }
 
-    public void speakResume() {
+    public void speakResume(String callbackName) {
         initialize(() -> {
             if (isPaused) {
                 isPaused = false;
                 isResumed = true;
                 if (currentSpeak != null) {
-                    speak(currentSpeak);
+                    speak(currentSpeak, callbackName);
                 }
             }
         });
     }
 
-    public void speakStop() {
+    public void speakStop(String callbackName) {
         if (currentSpeak != null) {
             if (listener != null) {
-                listener.onCallback(currentSpeak.speakId, currentSpeak.callbackName, SpeakStatus.STOP);
+                listener.onCallback(currentSpeak.speakId, callbackName, SpeakStatus.STOP);
             }
             isPaused = false;
             currentSpeak = null;
