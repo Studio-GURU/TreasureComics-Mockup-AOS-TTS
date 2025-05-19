@@ -1,1 +1,1 @@
-TreasureIslandX TTS 구현 샘플
+TreasureComics TTS 구현 샘플
